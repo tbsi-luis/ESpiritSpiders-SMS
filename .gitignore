@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual env
+.env
+.venv/
+venv/
+
+# Editor directories
+.vscode/
+.idea/
+
+# Env files
+api/.env
+
+# Distribution / packaging
+build/
+dist/
+
+# pytest
+.pytest_cache/
+
+# Logs
+*.log
