@@ -6,13 +6,12 @@ from config import get_settings
 
 try:
     from openai import OpenAI
-except Exception:  # pragma: no cover - optional dependency
+except Exception:
     OpenAI = None
 
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
-
 
 def _rule_based_classify(text: str) -> str:
     """Fallback lightweight classifier when OpenAI key is not set.
@@ -37,7 +36,6 @@ def _rule_based_classify(text: str) -> str:
 
     return "Neutral"
 
-
 def classify_message_with_openai(text: str) -> str:
     """Call OpenAI to classify single reply into Agree/Disagree/Neutral.
 
@@ -52,7 +50,6 @@ def classify_message_with_openai(text: str) -> str:
 
     client = OpenAI(api_key=api_key)
 
-    # Construct concise system + user prompt with examples
     system = (
         "You are a classifier that determines if a reply message shows agreement. "
         "Respond with exactly one of these words: Agree, Disagree, Neutral."
@@ -93,7 +90,6 @@ def classify_message_with_openai(text: str) -> str:
 
     # If anything failed, fallback to rule-based
     return _rule_based_classify(text)
-
 
 def classify_messages(messages: List[Dict]) -> List[Dict]:
     """Classify a list of message dicts. Each dict is expected to have a 'message' or 'text' field.

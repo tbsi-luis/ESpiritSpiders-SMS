@@ -31,14 +31,14 @@ app.add_middleware(
 
 app.include_router(sms_sync_server.router)
 
-@app.get("/")
-async def root():
-    return {
-        "app": settings.app_name,
-        "version": settings.app_version,
-        "status": "running",
-        "docs": "/docs"
-    }
+# @app.get("/")
+# async def root():
+#     return {
+#         "app": settings.app_name,
+#         "version": settings.app_version,
+#         "status": "running",
+#         "docs": "/docs"
+#     }
 
 if __name__ == "__main__":
     import uvicorn
