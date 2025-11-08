@@ -13,34 +13,31 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-def _rule_based_classify(text: str) -> str:
+def _rule_based_classify(text: str) -> bool:
     """Fallback lightweight classifier when OpenAI key is not set.
 
     Very simple heuristics: looks for affirmative/negative tokens.
+    Returns boolean:
+    - Agree -> True
+    - Neutral / Disagree -> False
     """
     if not text:
-        return "Neutral"
+        return False
 
     t = text.lower()
-    # strong affirmative tokens
     affirm = ["yes", "yep", "yeah", "sure", "ok", "okay", "can", "will", "i can", "i'll", "i will", "agree", "affirmative", "works for me"]
     neg = ["no", "nah", "not", "can't", "cannot", "won't", "will not", "nope", "never", "refuse"]
 
     for token in affirm:
         if token in t:
-            return "Agree"
+            return True  # Agree → True
 
-    for token in neg:
-        if token in t:
-            return "Disagree"
+    # Disagree or Neutral → False
+    return False
 
-    return "Neutral"
 
-def classify_message_with_openai(text: str) -> str:
-    """Call OpenAI to classify single reply into Agree/Disagree/Neutral.
-
-    If OpenAI client is not available or no API key, raise RuntimeError so caller can fall back.
-    """
+def classify_message_with_openai(text: str) -> bool:
+    """Call OpenAI to classify single reply into boolean (Agree=True, otherwise=False)."""
     api_key = settings.OPENAI_API_KEY or os.getenv("OPENAI_API_KEY")
     model = settings.OPENAI_MODEL
     temp = float(getattr(settings, "OPENAI_TEMPERATURE", 0.0))
@@ -76,31 +73,28 @@ def classify_message_with_openai(text: str) -> str:
             max_tokens=5
         )
 
-        # Response format can vary; try to extract text
         choices = getattr(resp, "choices", None) or resp.get("choices")
         if choices and len(choices) > 0:
             text_out = choices[0].get("message", {}).get("content") if isinstance(choices[0], dict) else getattr(choices[0].message, "content", None)
             if text_out:
-                cleaned = text_out.strip().split()[0].strip().capitalize()
-                if cleaned in ("Agree", "Disagree", "Neutral"):
-                    return cleaned
+                cleaned = text_out.strip().split()[0].capitalize()
+                return cleaned == "Agree"  # True if Agree, else False
 
     except Exception as e:
         logger.warning(f"OpenAI classification failed: {e}")
 
-    # If anything failed, fallback to rule-based
+    # Fallback
     return _rule_based_classify(text)
 
-def classify_messages(messages: List[Dict]) -> List[Dict]:
-    """Classify a list of message dicts. Each dict is expected to have a 'message' or 'text' field.
 
-    Returns list of dicts with added 'classification' key.
+def classify_messages(messages: List[Dict]) -> List[Dict]:
+    """Classify a list of messages. Each dict should have a 'message' or 'text' field.
+
+    Returns list of dicts with added boolean 'classification' key.
     """
     out = []
     for msg in messages:
         text = msg.get("message") or msg.get("text") or msg.get("body") or ""
-        label = "Neutral"
-        # Prefer OpenAI if configured
         try:
             label = classify_message_with_openai(text)
         except RuntimeError:
@@ -109,7 +103,7 @@ def classify_messages(messages: List[Dict]) -> List[Dict]:
             label = _rule_based_classify(text)
 
         new = dict(msg)
-        new["classification"] = label
+        new["classification"] = label  # True or False
         out.append(new)
 
     return out
