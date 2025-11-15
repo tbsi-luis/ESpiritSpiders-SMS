@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 from config import get_settings
-from routes import sms_sync_server
+from routes import sms_sync_server, db_routes
 
 # Configure logging
 logging.basicConfig(
@@ -30,6 +30,7 @@ app.add_middleware(
 )
 
 app.include_router(sms_sync_server.router)
+app.include_router(db_routes.router)
 
 # @app.get("/")
 # async def root():

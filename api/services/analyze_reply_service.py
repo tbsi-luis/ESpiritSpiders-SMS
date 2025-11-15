@@ -1,40 +1,15 @@
 import logging
 import os
 from typing import Dict, List
-
+from langchain_openai import ChatOpenAI
 from config import get_settings
+from dotenv import load_dotenv
 
-try:
-    from openai import OpenAI
-except Exception:
-    OpenAI = None
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
-
-def _rule_based_classify(text: str) -> bool:
-    """Fallback lightweight classifier when OpenAI key is not set.
-
-    Very simple heuristics: looks for affirmative/negative tokens.
-    Returns boolean:
-    - Agree -> True
-    - Neutral / Disagree -> False
-    """
-    if not text:
-        return False
-
-    t = text.lower()
-    affirm = ["yes", "yep", "yeah", "sure", "ok", "okay", "can", "will", "i can", "i'll", "i will", "agree", "affirmative", "works for me"]
-    neg = ["no", "nah", "not", "can't", "cannot", "won't", "will not", "nope", "never", "refuse"]
-
-    for token in affirm:
-        if token in t:
-            return True  # Agree → True
-
-    # Disagree or Neutral → False
-    return False
-
 
 def classify_message_with_openai(text: str) -> bool:
     """Call OpenAI to classify single reply into boolean (Agree=True, otherwise=False)."""
@@ -42,10 +17,10 @@ def classify_message_with_openai(text: str) -> bool:
     model = settings.OPENAI_MODEL
     temp = float(getattr(settings, "OPENAI_TEMPERATURE", 0.0))
 
-    if not api_key or OpenAI is None:
+    if not api_key or ChatOpenAI is None:
         raise RuntimeError("OpenAI not configured")
 
-    client = OpenAI(api_key=api_key)
+    openai_client = ChatOpenAI(model_name = "gpt-4o")
 
     system = (
         "You are a classifier that determines if a reply message shows agreement. "
@@ -66,26 +41,19 @@ def classify_message_with_openai(text: str) -> bool:
     ]
 
     try:
-        resp = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=temp,
-            max_tokens=5
-        )
-
-        choices = getattr(resp, "choices", None) or resp.get("choices")
-        if choices and len(choices) > 0:
-            text_out = choices[0].get("message", {}).get("content") if isinstance(choices[0], dict) else getattr(choices[0].message, "content", None)
-            if text_out:
-                cleaned = text_out.strip().split()[0].capitalize()
-                return cleaned == "Agree"  # True if Agree, else False
+        resp = openai_client.invoke(messages)
+        
+        # resp is an AIMessage object, extract content directly
+        text_out = getattr(resp, "content", None)
+        if text_out:
+            cleaned = text_out.strip().split()[0].capitalize()
+            return cleaned == "Agree"  # True if Agree, else False
+        return False
 
     except Exception as e:
+        print(e)
         logger.warning(f"OpenAI classification failed: {e}")
-
-    # Fallback
-    return _rule_based_classify(text)
-
+        return False
 
 def classify_messages(messages: List[Dict]) -> List[Dict]:
     """Classify a list of messages. Each dict should have a 'message' or 'text' field.
@@ -97,13 +65,23 @@ def classify_messages(messages: List[Dict]) -> List[Dict]:
         text = msg.get("message") or msg.get("text") or msg.get("body") or ""
         try:
             label = classify_message_with_openai(text)
-        except RuntimeError:
-            label = _rule_based_classify(text)
         except Exception:
-            label = _rule_based_classify(text)
+            raise RuntimeError("OpenAI classification failed")
 
         new = dict(msg)
         new["classification"] = label  # True or False
         out.append(new)
 
     return out
+
+if __name__ == "__main__":
+    # Example usage
+    test_messages = [
+        {"id": 1, "message": "Yes, I can attend the meeting."},
+        {"id": 2, "message": "Yes, I wwll."},
+        {"id": 3, "message": "No, I'll let you know later."},
+    ]
+
+    results = classify_messages(test_messages)
+    for res in results:
+        print(f"Message ID: {res['id']}, Classification: {res['classification']}")
