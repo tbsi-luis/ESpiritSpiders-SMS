@@ -12,7 +12,7 @@ All webhook processing runs asynchronously in the background to ensure
 fast webhook acknowledgment (required by SMS providers).
 """
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from models.head_notification_models import HeadNotificationRequest, HeadNotificationResult
 from models.request_reliever_models import RelieverRequest, RelieverRequestNotificationResult
 from models.webhook_models import SMSWebhookPayload, SMSMessage
@@ -29,6 +29,9 @@ import pytz
 import asyncio
 from threading import Lock
 from collections import deque
+from database import get_db
+from db_functions import is_reliever_contact_authorized, update_reliever_status_confirmed
+from sqlalchemy.orm import Session
 
 # =============================================================================
 # INITIALIZATION & CONFIGURATION
@@ -360,7 +363,8 @@ async def webhook_health_check():
 @router.post("/webhook/sms-received")
 async def receive_sms_webhook(
     payload: SMSWebhookPayload,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
 ):
     """
     Receive incoming SMS webhooks from SMS Mobile API.
@@ -371,7 +375,11 @@ async def receive_sms_webhook(
        - Check if already processed (deduplication)
        - Enqueue background processing task (non-blocking)
     3. Return 200 success immediately (required by webhook standards)
-    4. Background tasks classify messages and send optional auto-replies
+    4. Background tasks:
+       - Authenticate the sender's phone number against the reliever table
+       - Classify messages
+       - Update database status if confirmed
+       - Send optional auto-replies
     
     Batch Processing:
     - Handles multiple SMS in a single webhook call
@@ -386,6 +394,7 @@ async def receive_sms_webhook(
     Args:
         payload: SMSWebhookPayload containing SMS message(s)
         background_tasks: FastAPI background tasks manager
+        db: Database session for authentication and status updates
     
     Returns:
         Dictionary with status, processed count, and skipped count
@@ -414,7 +423,7 @@ async def receive_sms_webhook(
         for msg in messages:
             # Enqueue background processing (non-blocking)
             # Dedup check happens in the background task
-            background_tasks.add_task(process_incoming_sms, msg)
+            background_tasks.add_task(process_incoming_sms, msg, db)
         
         # Return success response immediately (within 5ms)
         # SMS provider expects fast response; slow webhook causes retries
@@ -552,7 +561,7 @@ async def receive_sms_webhook(
 #     except Exception as e:
 #         logger.error(f"Unexpected error in background SMS processing for message: {e}", exc_info=True)
 
-async def process_incoming_sms(msg: SMSMessage):
+async def process_incoming_sms(msg: SMSMessage, db: Session):
     try:
         # Deduplication
         if not _mark_message_processed(msg.guid):
@@ -562,9 +571,16 @@ async def process_incoming_sms(msg: SMSMessage):
         # Clean phone number display (optional: format nicely)
         clean_number = msg.number.replace("+63", "0") if msg.number.startswith("+63") else msg.number
 
+        # === AUTHENTICATION: Check if sender is authorized reliever ===
+        reliever_info = is_reliever_contact_authorized(db, msg.number)
+        
+        if not reliever_info:
+            logger.warning(f"UNAUTHORIZED SMS REJECTED | From: {clean_number} | GUID: {msg.guid}")
+            return
+
         # === RECEIVED MESSAGE ===
         logger.info(
-            f"SMS RECEIVED | From: {clean_number} | GUID: {msg.guid} | "
+            f"SMS RECEIVED | From: {clean_number} ({reliever_info['full_name']}) | GUID: {msg.guid} | "
             f"Text: \"{msg.message.strip()}\""
         )
 
@@ -574,18 +590,21 @@ async def process_incoming_sms(msg: SMSMessage):
 
         # === CLASSIFICATION ===
         try:
-            classification = await asyncio.to_thread(classify_message_with_openai, text)
-            method = "OpenAI"
+            classification, method = await asyncio.to_thread(classify_message_with_openai, text)
+            if method == "static":
+                method_display = "✓ STATIC CHECK (pattern-matched, saved tokens!)"
+            else:
+                method_display = f"OpenAI ({method})"
         except RuntimeError:
             logger.info(f"OPENAI UNAVAILABLE → Using rule-based fallback | From: {clean_number}")
             res = await asyncio.to_thread(classify_messages, [{"message": text}])
             classification = bool(res[0].get("classification", False))
-            method = "Rule-based"
+            method_display = "Rule-based (unavailable)"
         except Exception as e:
             logger.warning(f"OPENAI FAILED → Fallback used | Error: {e} | From: {clean_number}")
             res = await asyncio.to_thread(classify_messages, [{"message": text}])
             classification = bool(res[0].get("classification", False))
-            method = "Rule-based (after failure)"
+            method_display = "Rule-based (failed)"
 
         result_text = "AGREE" if classification else "NOT AGREE"
         emoji = "Yes" if classification else "No"
@@ -594,9 +613,19 @@ async def process_incoming_sms(msg: SMSMessage):
         logger.info(
             f"CLASSIFIED AS {result_text} {emoji} | "
             f"From: {clean_number} | "
-            f"Method: {method} | "
+            f"Method: {method_display} | "
             f"GUID: {msg.guid}"
         )
+
+        # === DATABASE UPDATE: If Agree, update status to "yes" ===
+        if classification:
+            success = update_reliever_status_confirmed(db, msg.number)
+            if success:
+                logger.info(f"DATABASE UPDATED | Status set to 'yes' | Contact: {clean_number}")
+            else:
+                logger.error(f"DATABASE UPDATE FAILED | Contact: {clean_number}")
+        else:
+            logger.info(f"DATABASE NOT UPDATED | Classification was NOT AGREE | Contact: {clean_number}")
 
         # === AUTO-REPLY (if enabled) ===
         auto_reply_enabled = os.getenv("SMS_AUTO_REPLY_ENABLED", "false").lower() in ("1", "true", "yes")

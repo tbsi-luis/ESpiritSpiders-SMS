@@ -1,0 +1,190 @@
+{
+  "project_description": "5-storey commercial office building in BGC, Makati. Total built-up area of 25,000 sqm across 5 floors (5,000 sqm per floor). Site area is 5,000 sqm with basement level for parking. The project includes Class A office spaces, modern lobby, conference rooms, and rooftop garden. Timeline: 18 months (approximately 64 weeks) from mobilization to turnover. Project type: Premium Commercial Real Estate Development with LEED certification requirements.",
+  
+  "boq_text": "Foundation: Pile driving with 1,200mm bored piles (250 piles total). Ground floor concrete slab (2,500 cubic meters). Concrete works total: 8,500 cubic meters ready-mix concrete. Structural Steel: 2,800 metric tons of structural grade steel. Reinforcement: 450 metric tons of rebar and mesh. Masonry: 450,000 pieces of hollow blocks, 50,000 units of wall tiles. Carpentry: Extensive formworks, scaffolding, and templets. Waterproofing: 15,000 sqm of high-grade membrane and coatings. Electrical: 150 kV distribution system, 500 distribution panels, 15 km of electrical conduits. Plumbing: Hot and cold water system with storage capacity 500 cubic meters. Fire Protection: Sprinkler system with 2,000 sprinkler heads. HVAC: Central air conditioning system with chiller capacity 500 tons. Fireproofing: Intumescent paint on all structural steel members.",
+  
+  "plans_text": "Architectural Design: 5-storey structure with regular grid layout. Typical floor dimensions: 100m x 50m. Ground floor: 1,500 sqm lobby, 2,500 sqm retail space, 1,000 sqm amenities. Levels 2-5: 4,500 sqm leasable office space per floor. Basement: 3,000 sqm parking with 150 slots. Roof: 1,000 sqm garden and equipment area. Building height: 25 meters total. Column spacing: 8m x 10m grid. Floor-to-floor height: 4.2 meters. Structural system: Reinforced concrete with structural steel frame.",
+  
+  "schedule_text": "Phase 1 - Site Preparation (Weeks 1-2): Mobilization, site clearing, utility disconnection. Phase 2 - Foundation (Weeks 3-10): Excavation, piling, ground floor concrete, basement construction. Phase 3 - Structural Frame - Lower Levels (Weeks 11-20): Formwork, rebar installation, concrete placement for levels 1-3, structural steel erection. Phase 4 - Structural Frame - Upper Levels (Weeks 21-30): Formwork, rebar, concrete for levels 4-5, roof construction. Phase 5 - Mechanical, Electrical, Plumbing (Weeks 31-50): Roughing-in of all MEP systems, installation of major equipment, testing. Phase 6 - Interior Finishes (Weeks 51-60): Drywall, painting, flooring, ceiling installation, door and window installation. Phase 7 - Final Finishes & Commissioning (Weeks 61-64): Tile work, fixture installation, punch list, final inspections, LEED compliance verification.",
+  
+  "other_docs": "Project Budget: ₱2.5 Billion total project cost. Labor budget allocation: 18% (₱450M). Contract type: Design-Build with performance specifications. Client: Major Real Estate Development Corporation. Consultant: International Architecture & Engineering Firm. Contractor: Top-tier construction company with experience in high-rise commercial projects. LEED Target: LEED Gold Certification. Environmental: EIA approved, waste management plan in place, dust control required. Safety: DOLE compliance mandatory, 24/7 on-site safety officer required.",
+  
+  "available_workers": [
+    {
+      "worker_id": "W001",
+      "name": "Juan Dela Cruz",
+      "trades": [
+        "Structural Steel",
+        "Steel Riggers",
+        "General Laborers"
+      ],
+      "certifications": [
+        "MERALCO_Accredited",
+        "DOLE_Basic_Training",
+        "Safety_Certificate"
+      ],
+      "reliability_score": 0.95,
+      "past_projects": [
+        "BGC Tower Phase 1",
+        "BGC Residences",
+        "Makati Financial Center"
+      ],
+      "hourly_rate": 150,
+      "availability_start_week": 1,
+      "availability_end_week": 64
+    },
+    {
+      "worker_id": "W002",
+      "name": "Maria Santos",
+      "trades": [
+        "Carpentry",
+        "Formwork",
+        "Scaffolding"
+      ],
+      "certifications": [
+        "PCC_Certified",
+        "DOLE_Basic_Training",
+        "Safety_Certificate"
+      ],
+      "reliability_score": 0.85,
+      "past_projects": [
+        "Makati Office Tower",
+        "QC Commercial Complex"
+      ],
+      "hourly_rate": 120,
+      "availability_start_week": 3,
+      "availability_end_week": 52
+    },
+    {
+      "worker_id": "W003",
+      "name": "Pedro Garcia",
+      "trades": [
+        "Electrical",
+        "Cable_Installation",
+        "Panel_Installation"
+      ],
+      "certifications": [
+        "MERALCO_Accredited",
+        "Safety_Certificate",
+        "High_Voltage_Certified"
+      ],
+      "reliability_score": 0.90,
+      "past_projects": [
+        "BGC Commercial Plaza",
+        "Makati Energy Building"
+      ],
+      "hourly_rate": 180,
+      "availability_start_week": 31,
+      "availability_end_week": 64
+    },
+    {
+      "worker_id": "W004",
+      "name": "Ana Reyes",
+      "trades": [
+        "HVAC",
+        "Mechanical",
+        "Plumbing"
+      ],
+      "certifications": [
+        "AWS_Certified",
+        "PHREB_Certified",
+        "Safety_Certificate"
+      ],
+      "reliability_score": 0.88,
+      "past_projects": [
+        "BGC Medical Center",
+        "QC Hospital Complex"
+      ],
+      "hourly_rate": 160,
+      "availability_start_week": 31,
+      "availability_end_week": 64
+    },
+    {
+      "worker_id": "W005",
+      "name": "Carlos Mendoza",
+      "trades": [
+        "Safety_Management",
+        "Quality_Control",
+        "Project_Coordination"
+      ],
+      "certifications": [
+        "Safety_Certificate",
+        "DOLE_Basic_Training",
+        "QA_QC_Certified"
+      ],
+      "reliability_score": 0.92,
+      "past_projects": [
+        "BGC Headquarters",
+        "Makati Corporate Tower",
+        "Cavite Industrial Park"
+      ],
+      "hourly_rate": 140,
+      "availability_start_week": 1,
+      "availability_end_week": 64
+    },
+    {
+      "worker_id": "W006",
+      "name": "Rommel Cruz",
+      "trades": [
+        "General Laborers",
+        "Material_Handling",
+        "Site_Cleaning"
+      ],
+      "certifications": [
+        "Safety_Certificate",
+        "DOLE_Basic_Training"
+      ],
+      "reliability_score": 0.80,
+      "past_projects": [
+        "Various BGC Projects"
+      ],
+      "hourly_rate": 100,
+      "availability_start_week": 1,
+      "availability_end_week": 64
+    },
+    {
+      "worker_id": "W007",
+      "name": "Ricardo Santos",
+      "trades": [
+        "Concrete_Specialists",
+        "Rebar_Workers",
+        "Concrete_Finishing"
+      ],
+      "certifications": [
+        "DOLE_Basic_Training",
+        "Safety_Certificate",
+        "Concrete_Testing_Certified"
+      ],
+      "reliability_score": 0.87,
+      "past_projects": [
+        "BGC Foundation Projects",
+        "Makati Basement Works"
+      ],
+      "hourly_rate": 130,
+      "availability_start_week": 3,
+      "availability_end_week": 35
+    },
+    {
+      "worker_id": "W008",
+      "name": "Antonio Villanueva",
+      "trades": [
+        "Masons",
+        "Cladding_Installers",
+        "Tile_Installers"
+      ],
+      "certifications": [
+        "DOLE_Basic_Training",
+        "Safety_Certificate",
+        "Cladding_Certified"
+      ],
+      "reliability_score": 0.82,
+      "past_projects": [
+        "BGC Cladding Works",
+        "QC Facade Projects"
+      ],
+      "hourly_rate": 115,
+      "availability_start_week": 26,
+      "availability_end_week": 60
+    }
+  ]
+}
